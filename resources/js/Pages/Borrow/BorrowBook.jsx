@@ -45,9 +45,11 @@ export default function BorrowBookForm() {
   const selectedMember = members.data.find(
     (m) => m.id.toString() === data.member_id
   );
-  const currentBorrowed = selectedMember?.current_borrowed || 0;
-  const borrowLimit = selectedMember?.type?.borrow_limit || 0;
-  const borrowLimitReached = currentBorrowed >= borrowLimit;
+  const currentBorrowed = selectedMember?.current_borrowed ?? 0;
+ const borrowLimit = selectedMember?.type?.borrow_limit ?? 0;
+
+  const borrowLimitReached =
+    selectedMember && currentBorrowed >= borrowLimit;
 
   const datePickerProps = {
     fullWidth: true,
@@ -105,7 +107,7 @@ export default function BorrowBookForm() {
                     <CommandList>
                       <CommandEmpty>No member found.</CommandEmpty>
                       <CommandGroup>
-                        {filteredMembers.map((m) => (
+                       {filteredMembers.map((m) => (
                           <CommandItem
                             key={m.id}
                             onSelect={() => {
@@ -114,28 +116,33 @@ export default function BorrowBookForm() {
                               setMemberQuery("");
                             }}
                           >
-                            {m.name} ({m.type?.name}) - Limit:{" "}
-                            {m.type?.borrow_limit}
+                          {m.name} ({m.type?.name}) - Limit: {m.type?.borrow_limit ?? 0}
+
                           </CommandItem>
                         ))}
+
                       </CommandGroup>
                     </CommandList>
                   </Command>
                 </div>
               )}
               {errors.member_id && (
-                <p className="mt-1 text-sm text-red-600">{errors.member_id}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.member_id}
+                </p>
               )}
               {/* Borrow limit info */}
               {selectedMember && (
-                <p className="mt-1 text-sm text-gray-700">
-                  Borrowed: {currentBorrowed} / {borrowLimit}
-                </p>
-              )}
-              {borrowLimitReached && (
-                <p className="mt-1 text-sm text-red-600">
-                  Borrow limit reached!
-                </p>
+                <>
+                  <p className="mt-1 text-sm text-gray-700">
+                    Borrowed: {currentBorrowed} / {borrowLimit}
+                  </p>
+                  {borrowLimitReached && (
+                    <p className="mt-1 text-sm text-red-600">
+                      Borrow limit reached!
+                    </p>
+                  )}
+                </>
               )}
             </div>
 
@@ -201,7 +208,9 @@ export default function BorrowBookForm() {
                 />
               </LocalizationProvider>
               {errors.borrow_date && (
-                <p className="mt-1 text-sm text-red-600">{errors.borrow_date}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.borrow_date}
+                </p>
               )}
             </div>
 
@@ -209,7 +218,9 @@ export default function BorrowBookForm() {
             <div className="md:col-span-2 text-center pt-4">
               <Button
                 type="submit"
-                disabled={processing || borrowLimitReached}
+                disabled={
+                  processing || (selectedMember && borrowLimitReached)
+                }
                 className="w-full"
               >
                 {processing ? "Saving..." : "Save Transaction"}

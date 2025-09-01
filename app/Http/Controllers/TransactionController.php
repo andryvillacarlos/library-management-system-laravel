@@ -186,7 +186,7 @@ public function borrowBook(StoreTransactionRequest $request)
         'member_id' => $memberId,
         'book_id' => $bookId,
         'borrow_date' => $borrowDate,
-        'due_date' => $dueDate,
+        'return_date' => $dueDate,
         'status' => 'borrowed',
     ]);
 
