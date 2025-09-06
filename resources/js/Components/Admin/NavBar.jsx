@@ -1,7 +1,7 @@
-import { ChevronDown, User, Settings, LogOut, Menu } from "lucide-react";
+import { ChevronDown, User, Settings, LogOut, Menu,Users,BookOpen } from "lucide-react";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
-
+import profileImage from '../../../../public/assets/home-andry.jpg';
 export default function Navbar({ onMenuClick }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function Navbar({ onMenuClick }) {
           className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-red-500 transition"
         >
           <img
-            src="/avatar.png"
+            src={profileImage}
             alt="Profile"
             className="w-9 h-9 rounded-full border-2 border-white"
           />
@@ -71,22 +71,26 @@ export default function Navbar({ onMenuClick }) {
                 />
               </button>
 
-              {settingsOpen && (
-                <div className="ml-8 mt-1 flex flex-col">
-                  <Link
-                   href={route('types.index')}
-                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition"
-                  >
-                    Member Types
-                  </Link>
-                  <Link
-                    href={route('policies.index')}
-                    className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition"
-                  >
-                    Policies
-                  </Link>
-                </div>
-              )}
+          {settingsOpen && (
+          <div className="ml-8 mt-1 flex flex-col">
+            <Link
+              href={route("types.index")}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition"
+            >
+              <Users size={16} className="text-gray-500" />
+              Member Types
+            </Link>
+
+            <Link
+              href={route("policies.index")}
+              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition"
+            >
+              <BookOpen size={16} className="text-gray-500" />
+              Policies
+            </Link>
+          </div>
+        )}
+
             </div>
 
             <Link

@@ -25,10 +25,9 @@ class StoreTransactionRequest extends FormRequest
         return [
             'member_id'   => ['required', 'exists:members,id'],
             'book_id'     => ['required', 'exists:books,id'],
-            'borrow_date' => ['required', 'date'],
+            'borrow_date' => ['nullable', 'date'],
             'return_date' => ['nullable', 'date', 'after_or_equal:borrow_date'],
-           'status' => ['nullable', 'in:borrowed,returned'],
-
+            'status' => ['nullable', 'in:borrowed,returned'],
         ];
     }
 

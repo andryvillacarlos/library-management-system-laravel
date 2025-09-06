@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
-import { Search, UserPlus, X, ArrowLeft } from "lucide-react";
+import { Search, PlusCircle, X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -10,39 +10,42 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function MemberTopBar({ routeName = "members.index" }) {
-  const { filters, types } = usePage().props; 
+export default function HistoryTopBar({ routeName = "transaction.history-list" }) {
+  const { filters, statuses } = usePage().props;
   const [search, setSearch] = useState(filters?.search || "");
   const [searched, setSearched] = useState(!!filters?.search);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim() === "") return;
+    if (search.trim() === "") {
+      clearSearch();
+      return;
+    }
     router.get(
       route(routeName),
-      { ...filters, search, type_id: filters?.type_id || "all" },
+      { ...filters, search },
       { preserveState: true, replace: true }
     );
     setSearched(true);
   };
 
-  const handleTypeChange = (value) => {
+  const handleStatusChange = (value) => {
     router.get(
       route(routeName),
-      { ...filters, type_id: value, search },
+      { ...filters, status: value, search },
       { preserveState: true, replace: true }
     );
   };
 
   const clearSearch = () => {
     setSearch("");
-    router.get(route(routeName), { type_id: filters?.type_id || "all" });
+    router.get(route(routeName), { status: filters?.status || "all" });
     setSearched(false);
   };
 
   const goBack = () => {
     setSearch("");
-    router.get(route(routeName), { type_id: filters?.type_id || "all" });
+    router.get(route(routeName), { status: filters?.status || "all" });
     setSearched(false);
   };
 
@@ -67,7 +70,7 @@ export default function MemberTopBar({ routeName = "members.index" }) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search members..."
+            placeholder="Search transactions..."
             className="w-full pl-10 pr-8 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -83,34 +86,33 @@ export default function MemberTopBar({ routeName = "members.index" }) {
         </div>
       </form>
 
-      {/* Right: Filter + Add Member */}
+      {/* Right: Status Filter + Add Borrow */}
       <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
-        {/* Type Filter Dropdown */}
+        {/* Status Filter Dropdown */}
         <Select
-          defaultValue={filters?.type_id || "all"}
-          onValueChange={handleTypeChange}
+          defaultValue={filters?.status || "all"}
+          onValueChange={handleStatusChange}
         >
           <SelectTrigger className="w-full sm:w-[150px] rounded-2xl">
-            <SelectValue placeholder="Filter by Type" />
+            <SelectValue placeholder="Filter by Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {types.map((type) => (
-              <SelectItem key={type.id} value={String(type.id)}>
-                {type.name}
+            {statuses?.map((status) => (
+              <SelectItem key={status} value={status}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        {/* Add Member Button */}
+        {/* Add Borrow Button */}
         <Button
           variant = "info"
-          onClick={() => router.visit(route("members.create"))}
+          onClick={() => router.visit(route("transaction.borrow.form"))}
           className="flex items-center gap-2 rounded-2xl shadow-md w-full sm:w-auto justify-center"
         >
-          <UserPlus size={18} />
-          Add Member
+          <PlusCircle size={18} />
+          New Borrow
         </Button>
       </div>
     </div>

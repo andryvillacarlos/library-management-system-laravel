@@ -24,4 +24,8 @@ class Transaction extends Model
     public function member(){
         return $this->belongsTo(Member::class,'member_id');
     }
+
+    public function fine(){
+        return $this->hasOne(Fine::class);
+    }
 }

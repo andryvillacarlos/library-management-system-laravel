@@ -102,6 +102,7 @@ export default function BookTopBar({ routeName = "books.index" }) {
 
         {/* Add Book Button */}
         <Button
+          variant="info"
           onClick={() => router.visit(route("books.create"))}
           className="flex items-center gap-2 rounded-2xl shadow-md w-full sm:w-auto justify-center"
         >

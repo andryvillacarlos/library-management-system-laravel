@@ -11,8 +11,6 @@ import {
   CommandGroup,
   CommandItem,
 } from "@/components/ui/command";
-import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 export default function BorrowBookForm() {
   const { members, books } = usePage().props;
@@ -20,7 +18,6 @@ export default function BorrowBookForm() {
   const { data, setData, post, processing, errors, reset } = useForm({
     member_id: "",
     book_id: "",
-    borrow_date: null,
   });
 
   const [openMember, setOpenMember] = useState(false);
@@ -46,17 +43,10 @@ export default function BorrowBookForm() {
     (m) => m.id.toString() === data.member_id
   );
   const currentBorrowed = selectedMember?.current_borrowed ?? 0;
- const borrowLimit = selectedMember?.type?.borrow_limit ?? 0;
+  const borrowLimit = selectedMember?.type?.borrow_limit ?? 0;
 
   const borrowLimitReached =
     selectedMember && currentBorrowed >= borrowLimit;
-
-  const datePickerProps = {
-    fullWidth: true,
-    variant: "outlined",
-    size: "medium",
-    sx: { height: 50 },
-  };
 
   return (
     <DashboardLayout>
@@ -107,7 +97,7 @@ export default function BorrowBookForm() {
                     <CommandList>
                       <CommandEmpty>No member found.</CommandEmpty>
                       <CommandGroup>
-                       {filteredMembers.map((m) => (
+                        {filteredMembers.map((m) => (
                           <CommandItem
                             key={m.id}
                             onSelect={() => {
@@ -116,11 +106,10 @@ export default function BorrowBookForm() {
                               setMemberQuery("");
                             }}
                           >
-                          {m.name} ({m.type?.name}) - Limit: {m.type?.borrow_limit ?? 0}
-
+                            {m.name} ({m.type?.name}) - Limit:{" "}
+                            {m.type?.borrow_limit ?? 0}
                           </CommandItem>
                         ))}
-
                       </CommandGroup>
                     </CommandList>
                   </Command>
@@ -192,25 +181,6 @@ export default function BorrowBookForm() {
               )}
               {errors.book_id && (
                 <p className="mt-1 text-sm text-red-600">{errors.book_id}</p>
-              )}
-            </div>
-
-            {/* Borrow Date */}
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700">
-                Borrow Date
-              </label>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  value={data.borrow_date}
-                  onChange={(newValue) => setData("borrow_date", newValue)}
-                  slotProps={{ textField: datePickerProps }}
-                />
-              </LocalizationProvider>
-              {errors.borrow_date && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.borrow_date}
-                </p>
               )}
             </div>
 

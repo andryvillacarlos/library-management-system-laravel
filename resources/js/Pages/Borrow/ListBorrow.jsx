@@ -13,28 +13,24 @@ export default function ListBorrow() {
       text: "Do you want to mark this book as returned?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#34D399", // green
-      cancelButtonColor: "#F87171", // red
+      confirmButtonColor: "#34D399",
+      cancelButtonColor: "#F87171",
       confirmButtonText: "Yes, return it!",
       cancelButtonText: "Cancel",
     }).then((result) => {
       if (result.isConfirmed) {
-        router.post(route("transaction.return", id), {
-          onSuccess: () => {
-            Swal.fire(
-              "Returned!",
-              "The book has been marked as returned.",
-              "success"
-            );
-          },
-          onError: () => {
-            Swal.fire(
-              "Error!",
-              "Something went wrong. Please try again.",
-              "error"
-            );
-          },
-        });
+        router.post(
+          route("transaction.return", id),
+          {},
+          {
+            onSuccess: () => {
+              Swal.fire("Returned!", "The book has been marked as returned.", "success");
+            },
+            onError: () => {
+              Swal.fire("Error!", "Something went wrong. Please try again.", "error");
+            },
+          }
+        );
       }
     });
   };
@@ -72,7 +68,6 @@ export default function ListBorrow() {
                       <button
                         onClick={() => markAsReturned(borrow.id)}
                         className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium hover:bg-green-200 transition"
-                        title="Mark as returned"
                       >
                         <Check size={16} />
                         Return
@@ -88,10 +83,7 @@ export default function ListBorrow() {
               ))
             ) : (
               <tr>
-                <td
-                  colSpan={7}
-                  className="text-center px-4 py-6 text-gray-500"
-                >
+                <td colSpan={7} className="text-center px-4 py-6 text-gray-500 italic">
                   No borrow records found.
                 </td>
               </tr>
@@ -100,8 +92,8 @@ export default function ListBorrow() {
         </table>
       </div>
 
-      {/* Pagination styled like BookList */}
-      {borrows.meta.total > borrows.meta.per_page && (
+      {/* Pagination (only show if this page has max results, e.g. 10) */}
+      {borrows.data.length === borrows.meta.per_page && (
         <div className="flex justify-center space-x-2 mt-6">
           {borrows.meta.links.map((link, index) => (
             <button

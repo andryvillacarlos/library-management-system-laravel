@@ -40,7 +40,6 @@ class TransactionResource extends JsonResource
                 ];
             }),
             'borrow_date' => $this->borrow_date,
-            'due_date' => $this->due_date,
             'return_date' => $this->return_date,
             'status' => $this->status,
         ];

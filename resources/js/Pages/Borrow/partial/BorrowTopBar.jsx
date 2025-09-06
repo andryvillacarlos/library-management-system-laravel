@@ -2,9 +2,16 @@ import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import { Search, PlusCircle, X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function BorrowTopBar({ routeName = "transaction.borrow.list" }) {
-  const { filters } = usePage().props;
+  const { filters, types } = usePage().props;
   const [search, setSearch] = useState(filters?.search || "");
   const [searched, setSearched] = useState(!!filters?.search);
 
@@ -13,21 +20,29 @@ export default function BorrowTopBar({ routeName = "transaction.borrow.list" }) 
     if (search.trim() === "") return;
     router.get(
       route(routeName),
-      { ...filters, search },
+      { ...filters, search, type_id: filters?.type_id || "all" },
       { preserveState: true, replace: true }
     );
     setSearched(true);
   };
 
+  const handleTypeChange = (value) => {
+    router.get(
+      route(routeName),
+      { ...filters, type_id: value, search },
+      { preserveState: true, replace: true }
+    );
+  };
+
   const clearSearch = () => {
     setSearch("");
-    router.get(route(routeName));
+    router.get(route(routeName), { type_id: filters?.type_id || "all" });
     setSearched(false);
   };
 
   const goBack = () => {
     setSearch("");
-    router.get(route(routeName));
+    router.get(route(routeName), { type_id: filters?.type_id || "all" });
     setSearched(false);
   };
 
@@ -52,7 +67,7 @@ export default function BorrowTopBar({ routeName = "transaction.borrow.list" }) 
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search transactions..."
+            placeholder="Search borrows..."
             className="w-full pl-10 pr-8 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
@@ -68,9 +83,29 @@ export default function BorrowTopBar({ routeName = "transaction.borrow.list" }) 
         </div>
       </form>
 
-      {/* Right: Add Borrow */}
+      {/* Right: Filter + New Borrow */}
       <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+        {/* Type Filter Dropdown */}
+        <Select
+          defaultValue={filters?.type_id || "all"}
+          onValueChange={handleTypeChange}
+        >
+          <SelectTrigger className="w-full sm:w-[150px] rounded-2xl">
+            <SelectValue placeholder="Filter by Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            {types.map((type) => (
+              <SelectItem key={type.id} value={String(type.id)}>
+                {type.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Add Borrow Button */}
         <Button
+          variant="info"
           onClick={() => router.visit(route("transaction.borrow.form"))}
           className="flex items-center gap-2 rounded-2xl shadow-md w-full sm:w-auto justify-center"
         >

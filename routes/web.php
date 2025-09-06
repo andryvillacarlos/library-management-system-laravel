@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\FineController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\ProfileController;
@@ -40,8 +41,15 @@ Route::get('/borrow/borrow-list', [TransactionController::class, 'borrowList'])
 Route::post('/transaction/{transaction}/return', [TransactionController::class, 'markAsReturned'])
      ->name('transaction.return');
 
+Route::get('/fines/list',[FineController::class,'fineList'])
+    ->name('fines.list');
+    
+Route::get('transaction/history-list',[TransactionController::class,'historyTransaction'])
+    ->name('transaction.history-list');
+
 Route::resource('types',TypeController::class);
 Route::resource('policies',PolicyController::class);
+
 
 });
 

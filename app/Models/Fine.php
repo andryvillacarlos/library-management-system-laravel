@@ -9,4 +9,14 @@ class Fine extends Model
 {
     /** @use HasFactory<\Database\Factories\FineFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'transaction_id',
+        'amount',
+        'is_paid',
+    ];
+
+    public function transaction(){
+        return $this->belongsTo(Transaction::class,'transaction_id');
+    }
 }

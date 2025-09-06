@@ -9,30 +9,19 @@ export default function AddBook() {
     isbn: "",
     published_year: "",
     copies: "",
-    image_path: null,
+    image_path: null, // for file uploads
   });
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setData(name, files ? files[0] : value);
+    setData(name, files ? files[0] : value); // handles text & file
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", data.title);
-    formData.append("author", data.author);
-    formData.append("isbn", data.isbn);
-    formData.append("published_year", data.published_year);
-    formData.append("copies", data.copies);
-    if (data.image_path) {
-      formData.append("image_path", data.image_path);
-    }
-
     post(route("books.store"), {
-      data: formData,
-      headers: { "Content-Type": "multipart/form-data" },
+      forceFormData: true, // 👈 tells Inertia to send FormData (needed for files)
       onSuccess: () => reset(),
     });
   };
@@ -68,7 +57,7 @@ export default function AddBook() {
             className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full"
           >
             {/* Title */}
-            <div className="w-full">
+            <div>
               <label className="block text-sm font-medium text-gray-700">
                 Title
               </label>
@@ -86,7 +75,7 @@ export default function AddBook() {
             </div>
 
             {/* Author */}
-            <div className="w-full">
+            <div>
               <label className="block text-sm font-medium text-gray-700">
                 Author
               </label>
@@ -104,7 +93,7 @@ export default function AddBook() {
             </div>
 
             {/* ISBN */}
-            <div className="w-full">
+            <div>
               <label className="block text-sm font-medium text-gray-700">
                 ISBN
               </label>
@@ -122,7 +111,7 @@ export default function AddBook() {
             </div>
 
             {/* Published Year */}
-            <div className="w-full">
+            <div>
               <label className="block text-sm font-medium text-gray-700">
                 Published Year
               </label>
@@ -142,7 +131,7 @@ export default function AddBook() {
             </div>
 
             {/* Copies */}
-            <div className="w-full">
+            <div>
               <label className="block text-sm font-medium text-gray-700">
                 Copies
               </label>
@@ -160,7 +149,7 @@ export default function AddBook() {
             </div>
 
             {/* Image */}
-            <div className="md:col-span-2 w-full">
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700">
                 Book Cover (optional)
               </label>
@@ -171,8 +160,8 @@ export default function AddBook() {
                 onChange={handleChange}
                 className={inputClass + " py-2"}
               />
-              {errors.image && (
-                <p className="mt-1 text-sm text-red-600">{errors.image}</p>
+              {errors.image_path && (
+                <p className="mt-1 text-sm text-red-600">{errors.image_path}</p>
               )}
             </div>
 
