@@ -104,16 +104,7 @@ export default function HistoryTopBar({ routeName = "transaction.history-list" }
             ))}
           </SelectContent>
         </Select>
-
-        {/* Add Borrow Button */}
-        <Button
-          variant = "info"
-          onClick={() => router.visit(route("transaction.borrow.form"))}
-          className="flex items-center gap-2 rounded-2xl shadow-md w-full sm:w-auto justify-center"
-        >
-          <PlusCircle size={18} />
-          New Borrow
-        </Button>
+      
       </div>
     </div>
   );

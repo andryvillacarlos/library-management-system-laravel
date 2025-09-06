@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
-import { Search, PlusCircle, X, ArrowLeft } from "lucide-react";
+import { Search,X, ArrowLeft, Gavel } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -105,16 +105,6 @@ export default function FineTopBar({ routeName = "fines.list" }) {
             ))}
           </SelectContent>
         </Select>
-
-        {/* Add Borrow Button */}
-        <Button
-          variant = "info"
-          onClick={() => router.visit(route("transaction.borrow.form"))}
-          className="flex items-center gap-2 rounded-2xl shadow-md w-full sm:w-auto justify-center"
-        >
-          <PlusCircle size={18} />
-          New Borrow
-        </Button>
       </div>
     </div>
   );

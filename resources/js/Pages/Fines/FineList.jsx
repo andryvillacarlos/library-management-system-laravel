@@ -34,6 +34,7 @@ export default function FineList() {
                 <th className="px-4 py-2 border">Address</th>
                 <th className="px-4 py-2 border">Amount</th>
                 <th className="px-4 py-2 border">Status</th>
+                <th className="px-4 py-2 border">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -63,6 +64,9 @@ export default function FineList() {
                           Unpaid
                         </span>
                       )}
+                    </td>
+                    <td>
+                      <button>Paid</button>
                     </td>
                   </tr>
                 ))

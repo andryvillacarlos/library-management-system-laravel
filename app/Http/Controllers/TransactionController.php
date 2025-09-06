@@ -11,6 +11,7 @@ use App\Models\Book;
 use App\Models\Member;
 use App\Models\Type;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class TransactionController extends Controller
 {
@@ -232,7 +233,7 @@ public function borrowBook(StoreTransactionRequest $request)
 public function historyTransaction(Request $request)
 {
     $search = $request->get('search');
-    $status = $request->get('status', 'all'); // only status filter now
+    $status = $request->get('status', 'all');
 
     $history = Transaction::with(['book','member'])
         ->when($search, function ($query, $search) {
@@ -248,6 +249,7 @@ public function historyTransaction(Request $request)
         ->when($status !== 'all', function ($query) use ($status) {
             $query->where('status', $status);
         })
+        ->whereBetween('created_at', [Carbon::now()->subDays(7), Carbon::now()]) // 7 days filter
         ->paginate(10)
         ->appends($request->all())
         ->onEachSide(1);
@@ -258,10 +260,12 @@ public function historyTransaction(Request $request)
             'search' => $search,
             'status' => $status,
         ],
-        'statuses' => ['all', 'borrowed', 'returned', 'overdue'], // dropdown options
+        'statuses' => ['all', 'borrowed', 'returned', 'overdue'],
     ]);
 }
 
-
+    public function deleteTransaction(){
+       Transaction::where('created_at','<',Carbon::now()->subDays(7))->delete();
+    }
 
 }

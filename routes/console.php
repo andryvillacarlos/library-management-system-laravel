@@ -11,3 +11,7 @@ Artisan::command('inspire', function () {
 Schedule::call(function () {
     app(\App\Http\Controllers\FineController::class)->generateFines();
 })->everyMinute();
+
+Schedule::call(function (){
+    app(\App\Http\Controllers\TransactionController::class)->deleteTransaction();
+})->daily();
