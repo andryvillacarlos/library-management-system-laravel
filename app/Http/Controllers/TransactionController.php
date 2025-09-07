@@ -266,6 +266,7 @@ public function historyTransaction(Request $request)
 
     public function deleteTransaction(){
        Transaction::where('created_at','<',Carbon::now()->subDays(7))->delete();
+       
     }
 
 }

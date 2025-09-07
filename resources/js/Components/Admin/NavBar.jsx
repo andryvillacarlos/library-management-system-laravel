@@ -1,7 +1,7 @@
 import { ChevronDown, User, Settings, LogOut, Menu,Users,BookOpen } from "lucide-react";
 import { Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
-import profileImage from '../../../../public/assets/home-andry.jpg';
+
 export default function Navbar({ onMenuClick }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -29,7 +29,7 @@ export default function Navbar({ onMenuClick }) {
           className="flex items-center gap-2 px-3 py-2 rounded-full hover:bg-red-500 transition"
         >
           <img
-            src={profileImage}
+            src={`/storage/profile_pics/${auth?.user?.profile_pic}`}
             alt="Profile"
             className="w-9 h-9 rounded-full border-2 border-white"
           />
