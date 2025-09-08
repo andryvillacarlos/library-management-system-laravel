@@ -15,6 +15,7 @@ class FineResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
+             'id' => $this->id,
             'member' => $this->whenLoaded('transaction', function(){
                 return new MemberResource($this->transaction->member);
                 

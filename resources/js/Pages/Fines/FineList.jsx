@@ -1,9 +1,41 @@
 import DashboardLayout from "@/Layouts/DashboardLayout";
-import { usePage, Link } from "@inertiajs/react";
+import { usePage, Link, router } from "@inertiajs/react";
 import FineTopBar from "./partial/FinesTopBar";
-
+import Swal from "sweetalert2";
 export default function FineList() {
   const { fines } = usePage().props;
+
+const handleMarkAsPaid = (fineId) => {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "Do you want to mark this fine as paid?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#34D399",
+    cancelButtonColor: "#F87171",
+    confirmButtonText: "Yes",
+    cancelButtonText: "Cancel",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      router.post(route("fines.paid", fineId), {}, {
+        onSuccess: () => {
+          Swal.fire("Paid", "The fine has been paid successfully", "success");
+          // Optimistically update the table row in memory
+          const finesCopy = [...fines.data];
+          const index = finesCopy.findIndex(f => f.id === fineId);
+          if (index !== -1) finesCopy[index].is_paid = true;
+          setFines({ ...fines, data: finesCopy });
+        },
+        onError: () => {
+          Swal.fire("Error!", "Something went wrong. Please try again.", "error");
+        },
+      });
+    }
+  });
+};
+
+
+
 
   if (!fines) {
     return (
@@ -32,6 +64,7 @@ export default function FineList() {
                 <th className="px-4 py-2 border">Email</th>
                 <th className="px-4 py-2 border">Phone</th>
                 <th className="px-4 py-2 border">Address</th>
+                <th className="px-4 py-2 border">Type</th>
                 <th className="px-4 py-2 border">Amount</th>
                 <th className="px-4 py-2 border">Status</th>
                 <th className="px-4 py-2 border">Action</th>
@@ -51,6 +84,7 @@ export default function FineList() {
                     <td className="px-4 py-2 border">{fine.member?.email}</td>
                     <td className="px-4 py-2 border">{fine.member?.phone}</td>
                     <td className="px-4 py-2 border">{fine.member?.address}</td>
+                    <td className="px-4 py-2 border">{fine.member?.type?.name}</td>
                     <td className="px-4 py-2 border text-right">
                       ₱ {fine.amount}
                     </td>
@@ -65,9 +99,21 @@ export default function FineList() {
                         </span>
                       )}
                     </td>
-                    <td>
-                      <button>Paid</button>
-                    </td>
+                    <td className="px-4 py-2 border text-center">
+                     <button
+                      onClick={() => handleMarkAsPaid(fine.id)}
+                      disabled={fine.is_paid}
+                      className={`px-3 py-1 rounded text-sm font-medium transition-colors duration-200 
+                        ${fine.is_paid 
+                          ? "text-white cursor-not-allowed" 
+                          : "bg-blue-500 text-white hover:bg-blue-600"
+                        }`}
+                    >
+                      {fine.is_paid ? "✔" : "Mark as Paid"}
+                    </button>
+
+                      </td>
+
                   </tr>
                 ))
               ) : (

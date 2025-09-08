@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router, usePage } from "@inertiajs/react";
-import { Search,X, ArrowLeft, Gavel } from "lucide-react";
+import { Search, X, ArrowLeft, Gavel, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -49,6 +49,11 @@ export default function FineTopBar({ routeName = "fines.list" }) {
     setSearched(false);
   };
 
+  const handleUpdateFine = () => {
+    // Replace with your actual route or logic to update fine
+    router.get(route("fines.update"));
+  };
+
   return (
     <div className="w-full p-4 bg-white shadow rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
       {/* Left: Search */}
@@ -86,7 +91,7 @@ export default function FineTopBar({ routeName = "fines.list" }) {
         </div>
       </form>
 
-      {/* Right: Type Filter + Add Borrow */}
+      {/* Right: Type Filter + Update Fine Button */}
       <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
         {/* Type Filter Dropdown */}
         <Select
@@ -105,6 +110,16 @@ export default function FineTopBar({ routeName = "fines.list" }) {
             ))}
           </SelectContent>
         </Select>
+
+        {/* Update Fine Button */}
+        <Button
+          variant="default"
+          className="flex items-center gap-2 rounded-2xl"
+          onClick={handleUpdateFine}
+        >
+          <Edit size={18} />
+          Update Fine
+        </Button>
       </div>
     </div>
   );

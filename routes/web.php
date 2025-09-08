@@ -40,16 +40,21 @@ Route::get('/borrow/borrow-list', [TransactionController::class, 'borrowList'])
 // Return Books
 Route::post('/transaction/{transaction}/return', [TransactionController::class, 'markAsReturned'])
      ->name('transaction.return');
-
+// Fines list
 Route::get('/fines/list',[FineController::class,'fineList'])
     ->name('fines.list');
-    
+// Update the fines
+Route::get('/fines/update',[FineController::class,'generateFines'])
+    ->name('fines.update');
+// Mark as paid
+Route::post('fines/{fine}/pay',[FineController::class,'markAsPaid'])->name('fines.paid');
+
+// Transaction history list
 Route::get('transaction/history-list',[TransactionController::class,'historyTransaction'])
     ->name('transaction.history-list');
 
 Route::resource('types',TypeController::class);
 Route::resource('policies',PolicyController::class);
-
 
 });
 

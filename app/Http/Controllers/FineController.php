@@ -73,29 +73,31 @@ class FineController extends Controller
         //
     }
 
-   public function generateFines()
-{
-    $today = Carbon::today();
+        public function generateFines()
+        {
+            $today = Carbon::today();
 
-    // find transactions that are overdue and don’t have a fine yet
-    $overdueTransactions = Transaction::where('return_date', '<', $today)
-        ->doesntHave('fine')
-        ->get();
+            // find transactions that are overdue, have status 'borrowed', and don’t have a fine yet
+            $overdueTransactions = Transaction::where('return_date', '<', $today)
+                ->where('status', 'borrowed') // filter only borrowed transactions
+                ->doesntHave('fine')
+                ->get();
 
-    foreach ($overdueTransactions as $transaction) {
-        // calculate days late
-        $daysLate = Carbon::parse($transaction->return_date)->diffInDays($today);
+            foreach ($overdueTransactions as $transaction) {
+                // calculate days late
+                $daysLate = Carbon::parse($transaction->return_date)->diffInDays($today);
 
-        // Example: 10 pesos per day late
-        $fineAmount = $daysLate * 10;
+                // Example: 10 pesos per day late
+                $fineAmount = $daysLate * 10;
 
-        Fine::create([
-            'transaction_id' => $transaction->id,
-            'amount'         => $fineAmount,
-            'is_paid'        => false,
-        ]);
-    }
-}
+                Fine::create([
+                    'transaction_id' => $transaction->id,
+                    'amount'         => $fineAmount,
+                    'is_paid'        => false,
+                ]);
+            }
+        }
+
 
 
 public function fineList(Request $request)
@@ -126,6 +128,18 @@ public function fineList(Request $request)
     ]);
 }
 
+public function markAsPaid(Fine $fine)
+{
+    if (!$fine->is_paid) {
+        $fine->update(['is_paid' => true]);
+    }
+
+    return back()->with('success', 'Fine marked as paid.');
+}
+
+}
+
+
 
     
-}
+
