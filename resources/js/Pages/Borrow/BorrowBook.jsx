@@ -44,9 +44,13 @@ export default function BorrowBookForm() {
   );
   const currentBorrowed = selectedMember?.current_borrowed ?? 0;
   const borrowLimit = selectedMember?.type?.borrow_limit ?? 0;
+  const hasUnpaidFines = selectedMember?.has_unpaid_fines ?? false;
 
   const borrowLimitReached =
     selectedMember && currentBorrowed >= borrowLimit;
+
+  const disableSubmit =
+    processing || borrowLimitReached || hasUnpaidFines;
 
   return (
     <DashboardLayout>
@@ -102,12 +106,18 @@ export default function BorrowBookForm() {
                             key={m.id}
                             onSelect={() => {
                               setData("member_id", m.id.toString());
+                              setData("book_id", ""); // reset book when member changes
                               setOpenMember(false);
                               setMemberQuery("");
                             }}
                           >
                             {m.name} ({m.type?.name}) - Limit:{" "}
                             {m.type?.borrow_limit ?? 0}
+                            {m.has_unpaid_fines && (
+                              <span className="ml-2 text-red-600 text-xs">
+                                (Unpaid fines)
+                              </span>
+                            )}
                           </CommandItem>
                         ))}
                       </CommandGroup>
@@ -120,7 +130,7 @@ export default function BorrowBookForm() {
                   {errors.member_id}
                 </p>
               )}
-              {/* Borrow limit info */}
+              {/* Borrow info */}
               {selectedMember && (
                 <>
                   <p className="mt-1 text-sm text-gray-700">
@@ -129,6 +139,11 @@ export default function BorrowBookForm() {
                   {borrowLimitReached && (
                     <p className="mt-1 text-sm text-red-600">
                       Borrow limit reached!
+                    </p>
+                  )}
+                  {hasUnpaidFines && (
+                    <p className="mt-1 text-sm text-red-600">
+                      This member has unpaid fines.
                     </p>
                   )}
                 </>
@@ -145,6 +160,7 @@ export default function BorrowBookForm() {
                 variant="outline"
                 className="w-full text-left h-12"
                 onClick={() => setOpenBook(!openBook)}
+                disabled={!data.member_id}
               >
                 {data.book_id
                   ? books.find((b) => b.id.toString() === data.book_id)?.title
@@ -188,9 +204,7 @@ export default function BorrowBookForm() {
             <div className="md:col-span-2 text-center pt-4">
               <Button
                 type="submit"
-                disabled={
-                  processing || (selectedMember && borrowLimitReached)
-                }
+                disabled={disableSubmit}
                 className="w-full"
               >
                 {processing ? "Saving..." : "Save Transaction"}

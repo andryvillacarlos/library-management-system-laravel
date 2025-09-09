@@ -33,7 +33,12 @@ class TypeController extends Controller
     public function store(StoreTypeRequest $request)
     {
           $validated = $request->validated();
-          Type::create($validated);
+          $type = Type::create($validated);
+
+          $type->policy()->create([
+            'borrow_limit' => 2,
+            'due_days' => 1, 
+          ]);
           return redirect()->route('types.index')->with('success','Type created successfully');
     }
 

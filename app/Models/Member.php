@@ -51,4 +51,22 @@ class Member extends Model
    public function policy(){
      return $this->hasOne(Policy::class);
    }
+
+   public function transactions()
+{
+    return $this->hasMany(Transaction::class, 'member_id');
+}
+
+public function fines()
+{
+    return $this->hasManyThrough(
+        Fine::class,         // Final model
+        Transaction::class,  // Intermediate model
+        'member_id',         // Foreign key on transactions table
+        'transaction_id',    // Foreign key on fines table
+        'id',                // Local key on members table
+        'id'                 // Local key on transactions table
+    );
+}
+
 }

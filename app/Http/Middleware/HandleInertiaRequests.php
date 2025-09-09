@@ -27,10 +27,9 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-  public function share(Request $request): array
-{
-    return [
-        ...parent::share($request),
+  public function share(Request $request): array {
+    
+    return array_merge(parent::share($request), [
         'auth' => [
             'user' => $request->user() ? [
                 'id' => $request->user()->id,
@@ -39,8 +38,13 @@ class HandleInertiaRequests extends Middleware
                 'profile_pic' => $request->user()->profile_pic, // just the filename
             ] : null,
         ],
-    ];
+        'flash' => [
+            'success' => fn () => $request->session()->get('success'),
+            'error'   => fn () => $request->session()->get('error'),
+        ],
+    ]);
 }
+
 
 
 }

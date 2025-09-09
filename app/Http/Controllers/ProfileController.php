@@ -17,8 +17,8 @@ class ProfileController extends Controller
     /**
      * Display the user's profile form.
      */
-  public function edit(Request $request): Response
-{
+  public function edit(Request $request): Response {
+    
     return Inertia::render('Profile/Edit', [
         'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
         'status' => session('status'),
@@ -33,36 +33,32 @@ class ProfileController extends Controller
      */
 public function update(ProfileUpdateRequest $request)
 {
-    $user = $request->user();
-    $data = $request->validated();
+            $user = $request->user();
+            $data = $request->validated();
 
-    // Handle profile picture upload
-    if ($request->hasFile('profile_picture')) {
-        $file = $request->file('profile_picture');
+            // Handle profile picture upload
+            if ($request->hasFile('profile_picture')) {
+                $file = $request->file('profile_picture');
 
-        // Generate a unique filename to avoid conflicts
-        $fileName = time() . '_' . $file->getClientOriginalName();
+                // Generate a unique filename to avoid conflicts
+                $fileName = time() . '_' . $file->getClientOriginalName();
 
-        // Optional: delete old profile picture if exists
-        if ($user->profile_pic && Storage::disk('public')->exists("profile_pics/{$user->profile_pic}")) {
-            Storage::disk('public')->delete("profile_pics/{$user->profile_pic}");
-        }
+                // Optional: delete old profile picture if exists
+                if ($user->profile_pic && Storage::disk('public')->exists("profile_pics/{$user->profile_pic}")) {
+                    Storage::disk('public')->delete("profile_pics/{$user->profile_pic}");
+                }
 
-        // Store file in public disk
-        $file->storeAs('profile_pics', $fileName, 'public');
+                // Store file in public disk
+                $file->storeAs('profile_pics', $fileName, 'public');
 
-        // Save the new filename to the database
-        $data['profile_pic'] = $fileName;
-    }
+                // Save the new filename to the database
+                $data['profile_pic'] = $fileName;
+            }
 
+                // Update user
+            $user->update($data);
 
-
-
-
-    // Update user
-    $user->update($data);
-
-    return back()->with('status', 'profile-updated');
+            return back()->with('status', 'profile-updated');
 }
 
 

@@ -1,11 +1,33 @@
-import DashboardLayout from "@/Layouts/DashboardLayout";
+import { useEffect } from "react";
 import { usePage, router, Link } from "@inertiajs/react";
+import DashboardLayout from "@/Layouts/DashboardLayout";
 import MemberTopBar from "./partial/MemberNav";
 import { Pencil, Trash2 } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function MemberList() {
-  const { members } = usePage().props;
+  const { members, flash, auth } = usePage().props;
+
+  // ✅ Show SweetAlert messages
+  useEffect(() => {
+    if (flash?.success) {
+      Swal.fire({
+        icon: "success",
+        title: "Success",
+        text: flash.success,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+
+    if (flash?.error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: flash.error,
+      });
+    }
+  }, [flash]);
 
   const handleDelete = (slug) => {
     Swal.fire({
@@ -18,8 +40,7 @@ export default function MemberList() {
       confirmButtonText: "Yes, delete it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        router.delete(route("members.destroy", slug)
-        );
+        router.delete(route("members.destroy", slug));
       }
     });
   };
@@ -46,35 +67,55 @@ export default function MemberList() {
             </thead>
             <tbody>
               {members.data.length > 0 ? (
-                members.data.map((member) => (
-                  <tr key={member.id} className="hover:bg-gray-50 text-sm">
-                    <td className="p-3 border-b">{member.id}</td>
-                    <td className="p-3 border-b">{member.name}</td>
-                    <td className="p-3 border-b">{member.email}</td>
-                    <td className="p-3 border-b">{member.phone}</td>
-                    <td className="p-3 border-b whitespace-pre-line">{member.address}</td>
-                    <td className="p-3 border-b">{member.type?.name || "—"}</td>
-                    <td className="p-3 border-b text-center">
-                      <div className="flex justify-center gap-2">
-                        <Link
-                          href={route('members.edit', member.slug)}
-                          className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Link>
-                        <button
-                          onClick={() => handleDelete(member.slug)}
-                          className="p-2 rounded bg-red-500 hover:bg-red-600 text-white"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                members.data.map((member) => {
+                  const cannotDelete =
+                    member.transactions_count > 0 ||
+                    member.unpaid_fines_count > 0;
+
+                  return (
+                    <tr key={member.id} className="hover:bg-gray-50 text-sm">
+                      <td className="p-3 border-b">{member.id}</td>
+                      <td className="p-3 border-b">{member.name}</td>
+                      <td className="p-3 border-b">{member.email}</td>
+                      <td className="p-3 border-b">{member.phone}</td>
+                      <td className="p-3 border-b whitespace-pre-line">
+                        {member.address}
+                      </td>
+                      <td className="p-3 border-b">
+                        {member.type?.name || "—"}
+                      </td>
+                      <td className="p-3 border-b text-center">
+                        <div className="flex justify-center gap-2">
+                          <Link
+                            href={route("members.edit", member.slug)}
+                            className="p-2 rounded bg-blue-500 hover:bg-blue-600 text-white"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Link>
+
+                          {cannotDelete ? (
+                            <span className="px-2 py-1 rounded text-xs bg-gray-300 text-gray-600 cursor-not-allowed">
+                              Cannot delete
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleDelete(member.slug)}
+                              className="p-2 rounded bg-red-500 hover:bg-red-600 text-white"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan="7" className="p-6 text-center text-gray-500 text-sm">
+                  <td
+                    colSpan="7"
+                    className="p-6 text-center text-gray-500 text-sm"
+                  >
                     No members found.
                   </td>
                 </tr>
@@ -83,7 +124,7 @@ export default function MemberList() {
           </table>
         </div>
 
-        {/* Pagination styled like BookList */}
+        {/* ✅ Pagination */}
         {members.meta.total > members.meta.per_page && (
           <div className="flex justify-center space-x-2 mt-6">
             {members.meta.links.map((link, index) => (

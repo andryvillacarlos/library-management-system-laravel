@@ -72,7 +72,6 @@ class PolicyController extends Controller
      */
     public function destroy(Policy $policy)
     {
-        $policy->delete();
-        return redirect()->route('policies.index')->with('success','Deleted Successfully');
+      
     }
 }

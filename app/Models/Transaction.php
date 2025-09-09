@@ -26,6 +26,6 @@ class Transaction extends Model
     }
 
     public function fine(){
-        return $this->hasOne(Fine::class);
+        return $this->hasMany(Fine::class);
     }
 }

@@ -103,9 +103,37 @@ public function index()
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Member $member)
+   public function destroy(Member $member)
     {
-        $member->delete();
-        return redirect()->route('members.index')->with('success','Member deleted successfully');
+    // Check if the member has any active/unreturned transactions
+    $hasActiveTransactions = $member->transactions()
+        ->where('status','borrowed') // adjust column name if needed
+        ->exists();
+
+    if ($hasActiveTransactions) {
+        return redirect()
+            ->route('members.index')
+            ->with('error', "{$member->name} cannot be deleted because they still have unreturned transactions.");
     }
+
+    // Check if the member has any unpaid fines
+    $hasUnpaidFines = $member->fines()
+        ->where('is_paid', false)
+        ->exists();
+
+    if ($hasUnpaidFines) {
+        return redirect()
+            ->route('members.index')
+            ->with('error', "{$member->name} cannot be deleted because they still have unpaid fines.");
+    }
+
+    // Safe to delete
+    $member->delete();
+
+    return redirect()
+        ->route('members.index')
+        ->with('success', "Member {$member->name} deleted successfully.");
+}
+
+
 }

@@ -73,8 +73,8 @@ class FineController extends Controller
         //
     }
 
-        public function generateFines()
-        {
+    public function generateFines() {
+           
             $today = Carbon::today();
 
             // find transactions that are overdue, have status 'borrowed', and don’t have a fine yet
@@ -96,7 +96,7 @@ class FineController extends Controller
                     'is_paid'        => false,
                 ]);
             }
-        }
+}
 
 
 
@@ -131,7 +131,7 @@ public function fineList(Request $request)
 public function markAsPaid(Fine $fine)
 {
     if (!$fine->is_paid) {
-        $fine->update(['is_paid' => true]);
+        $fine->update(['is_paid' => 1]);
     }
 
     return back()->with('success', 'Fine marked as paid.');
