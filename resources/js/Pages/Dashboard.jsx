@@ -1,5 +1,5 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 
 // Chart.js
@@ -30,54 +30,62 @@ ChartJS.register(
 );
 
 export default function Dashboard() {
-  // Demo LMS datasets — replace later with API data
-  const borrowingTrend = useMemo(() => ({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-    datasets: [
-      {
-        label: 'Books Borrowed',
-        data: [320, 410, 380, 450, 520, 490, 560],
-        borderColor: '#3b82f6', // blue-500
-        backgroundColor: '#3b82f6',
-        borderWidth: 2,
-        fill: false,
-        tension: 0.35,
-      },
-      {
-        label: 'Books Returned',
-        data: [300, 380, 360, 420, 480, 470, 540],
-        borderColor: '#10b981', // green-500
-        backgroundColor: '#10b981',
-        borderWidth: 2,
-        borderDash: [5, 5],
-        tension: 0.35,
-      },
-    ],
-  }), []);
+  const {
+    bookCount,
+    memberCount,
+    borrowBookToday,
+    overDueBooks,
+    borrowBookLast7Months,
+  } = usePage().props;
 
+  // Borrowing trend (real data from backend)
+  const borrowingTrend = useMemo(() => {
+    const labels = Object.keys(borrowBookLast7Months);   // e.g. ["Mar 2025", "Apr 2025", ...]
+    const data = Object.values(borrowBookLast7Months);   // e.g. [12, 9, 15, ...]
+    
+    console.log(Object.keys(borrowBookLast7Months));
+      console.log(Object.values(borrowBookLast7Months));
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Books Borrowed',
+          data,
+          borderColor: '#3b82f6',
+          backgroundColor: '#3b82f6',
+          borderWidth: 2,
+          fill: false,
+          tension: 0.35,
+        },
+      ],
+    };
+  }, [borrowBookLast7Months]);
+
+  // Placeholder: Weekly activity (can be wired to backend later)
   const weeklyActivity = useMemo(() => ({
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     datasets: [
       {
         label: 'Borrowed',
         data: [45, 52, 39, 60, 70, 48, 55],
-        backgroundColor: '#3b82f6', // blue
+        backgroundColor: '#3b82f6',
       },
       {
         label: 'Returned',
         data: [38, 45, 32, 55, 62, 42, 50],
-        backgroundColor: '#10b981', // green
+        backgroundColor: '#10b981',
       },
     ],
   }), []);
 
+  // Placeholder: Inventory split (can be wired to backend later)
   const inventorySplit = useMemo(() => ({
     labels: ['Available', 'Borrowed', 'Reserved', 'Lost/Damaged'],
     datasets: [
       {
         label: 'Books',
         data: [1240, 420, 80, 12],
-        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'], // green, blue, yellow, red
+        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
       },
     ],
   }), []);
@@ -90,10 +98,17 @@ export default function Dashboard() {
       tooltip: { enabled: true },
     },
     scales: {
-      y: { beginAtZero: true, grid: { drawBorder: false } },
+      y: {
+        beginAtZero: true,
+        grid: { drawBorder: false },
+        ticks: {
+          stepSize: 100,   // 👈 gap of 100
+        },
+      },
       x: { grid: { display: false } },
     },
   };
+
 
   return (
     <>
@@ -113,8 +128,7 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-500">Total Books</div>
                 <span className="w-3 h-3 rounded-full bg-blue-500"></span>
               </div>
-              <div className="mt-2 text-3xl font-bold text-blue-600">1,752</div>
-              <div className="mt-1 text-xs text-green-600">+120 new this month</div>
+              <div className="mt-2 text-3xl font-bold text-blue-600">{bookCount}</div>
             </div>
 
             <div className="rounded-2xl border bg-white p-4 shadow-sm">
@@ -122,8 +136,7 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-500">Active Members</div>
                 <span className="w-3 h-3 rounded-full bg-green-500"></span>
               </div>
-              <div className="mt-2 text-3xl font-bold text-green-600">482</div>
-              <div className="mt-1 text-xs text-green-600">+15 joined this week</div>
+              <div className="mt-2 text-3xl font-bold text-green-600">{memberCount}</div>
             </div>
 
             <div className="rounded-2xl border bg-white p-4 shadow-sm">
@@ -131,8 +144,7 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-500">Books Borrowed Today</div>
                 <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
               </div>
-              <div className="mt-2 text-3xl font-bold text-yellow-600">76</div>
-              <div className="mt-1 text-xs text-gray-500">~ avg 68/day</div>
+              <div className="mt-2 text-3xl font-bold text-yellow-600">{borrowBookToday}</div>
             </div>
 
             <div className="rounded-2xl border bg-white p-4 shadow-sm">
@@ -140,8 +152,7 @@ export default function Dashboard() {
                 <div className="text-sm text-gray-500">Overdue Books</div>
                 <span className="w-3 h-3 rounded-full bg-red-500"></span>
               </div>
-              <div className="mt-2 text-3xl font-bold text-red-600">19</div>
-              <div className="mt-1 text-xs text-red-600">+3 vs last week</div>
+              <div className="mt-2 text-3xl font-bold text-red-600">{overDueBooks}</div>
             </div>
           </div>
 

@@ -27,7 +27,7 @@ function BookCard({ book, onDelete }) {
         <div className="mt-2 text-sm text-gray-600 space-y-1">
           <p>ISBN: {book.isbn}</p>
           <p>Year: {book.published_year}</p>
-          <p>Copies: {book.copies}</p>
+          <p>Copies: {book.copies.toLocaleString()}</p>
         </div>
       </div>
 

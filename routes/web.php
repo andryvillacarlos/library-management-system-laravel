@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FineController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\PolicyController;
@@ -21,7 +22,9 @@ Route::get('/',fn()=>inertia('Auth/Login'));
 // Auth and verified
 Route::middleware(['auth','verified'])->group(function (){
    
-    Route::get('/dashboard',fn()=>inertia('Dashboard'))->name('dashboard');
+    Route::get('/dashboard',[DashboardController::class,'allData'])
+                           ->name('dashboard');
+    
     Route::resource('books',BookController::class);
     Route::resource('members',MemberController::class);
   // Borrow form (show form)
