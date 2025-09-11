@@ -1,13 +1,14 @@
 import DashboardLayout from "@/Layouts/DashboardLayout";
 import { router } from "@inertiajs/react";
 import BookTopBar from "./partial/BookTopBar";
-import { Pencil, Trash2 } from "lucide-react";
-import Swal from "sweetalert2";
 
 // Reusable Book Card component
-function BookCard({ book, onDelete }) {
+function BookCard({ book }) {
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-5 flex flex-col justify-between hover:shadow-2xl transition duration-300">
+    <div
+      onClick={() => router.get(route("books.show", book.slug))}
+      className="bg-white shadow-lg rounded-2xl p-5 flex flex-col justify-between hover:shadow-2xl hover:scale-[1.02] transition duration-300 cursor-pointer"
+    >
       {/* Book Image */}
       <div className="relative w-full h-52 mb-4 overflow-hidden rounded-xl">
         <img
@@ -24,10 +25,20 @@ function BookCard({ book, onDelete }) {
           {book.title}
         </h2>
         <p className="text-sm text-gray-500">by {book.author}</p>
-        <div className="mt-2 text-sm text-gray-600 space-y-1">
-          <p>ISBN: {book.isbn}</p>
-          <p>Year: {book.published_year}</p>
-          <p>Copies: {book.copies.toLocaleString()}</p>
+
+        <div className="mt-3 w-full text-sm text-gray-700 space-y-1">
+          <p>
+            <span className="font-medium text-gray-900">ISBN:</span>{" "}
+            {book.isbn}
+          </p>
+          <p>
+            <span className="font-medium text-gray-900">Year:</span>{" "}
+            {book.published_year}
+          </p>
+          <p>
+            <span className="font-medium text-gray-900">Total Copies:</span>{" "}
+            {book.copies.toLocaleString()}
+          </p>
         </div>
       </div>
 
@@ -43,48 +54,11 @@ function BookCard({ book, onDelete }) {
           {book.status}
         </span>
       </div>
-
-      {/* Action Buttons */}
-      <div className="mt-5 flex justify-between">
-        <button
-          onClick={() => router.get(route("books.edit", book.slug))}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-blue-500 text-white rounded-sm shadow hover:bg-blue-600 transition"
-        >
-          <Pencil size={16} /> Edit
-        </button>
-        <button
-          onClick={() => onDelete(book.slug)}
-          className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium bg-red-500 text-white rounded-sm shadow hover:bg-red-600 transition"
-        >
-          <Trash2 size={16} /> Remove
-        </button>
-      </div>
     </div>
   );
 }
 
 export default function BookList({ books }) {
-  const handleDelete = (slug) => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "This book will be permanently deleted!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
-      confirmButtonText: "Yes, delete it!",
-      cancelButtonText: "Cancel",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        router.delete(route("books.destroy", slug), {
-          onSuccess: () => {
-            Swal.fire("Deleted!", "The book has been removed.", "success");
-          },
-        });
-      }
-    });
-  };
-
   return (
     <DashboardLayout>
       <BookTopBar routeName="books.index" />
@@ -99,7 +73,7 @@ export default function BookList({ books }) {
             {/* Book grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {books.data.map((book) => (
-                <BookCard key={book.id} book={book} onDelete={handleDelete} />
+                <BookCard key={book.id} book={book} />
               ))}
             </div>
 

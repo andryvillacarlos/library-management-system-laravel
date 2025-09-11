@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,4 +29,30 @@ class Transaction extends Model
     public function fine(){
         return $this->hasMany(Fine::class);
     }
+
+    public function history(){
+        return $this->hasMany(TrackHistory::class);
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($transaction) {
+          $transaction->history()->create([
+                'action' => $transaction->status,
+                'notes' => 'Transaction created',
+                'action_date' => Carbon::now(),
+                'borrow_date' => $transaction->borrow_date,
+          ]);
+        });
+
+        static::updated(function ($transaction) {
+            $transaction->history()->create([
+                'action' => $transaction->status,
+                'notes' => 'Transaction Updated',
+                'action_date' => Carbon::now(),
+                'borrow_date' => $transaction->borrow_date,
+            ]);
+        });
+    }
+
 }

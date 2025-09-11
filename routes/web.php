@@ -8,6 +8,7 @@ use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\TypeController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 
@@ -17,7 +18,13 @@ Route::fallback(fn()=>inertia('Errors/NotFound',[
 ]));
 
 // Landing Page
-Route::get('/',fn()=>inertia('Auth/Login'));
+Route::get('/',function(){
+     if(Auth::check()){
+        return redirect()->route('dashboard');
+     } 
+
+     return inertia('Auth/Login');
+});
 
 // Auth and verified
 Route::middleware(['auth','verified'])->group(function (){

@@ -1,6 +1,7 @@
 import DashboardLayout from '@/Layouts/DashboardLayout';
-import { Head, usePage } from '@inertiajs/react';
+import { Head,usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
+import dayjs from 'dayjs';
 
 // Chart.js
 import {
@@ -36,15 +37,20 @@ export default function Dashboard() {
     borrowBookToday,
     overDueBooks,
     borrowBookLast7Months,
+    booksBorrowCountThisWeek,
+    membersCountThisWeek,
+    weeklyBorrowedReturnActivity,
   } = usePage().props;
+
+  console.log(weeklyBorrowedReturnActivity);
 
   // Borrowing trend (real data from backend)
   const borrowingTrend = useMemo(() => {
-    const labels = Object.keys(borrowBookLast7Months);   // e.g. ["Mar 2025", "Apr 2025", ...]
-    const data = Object.values(borrowBookLast7Months);   // e.g. [12, 9, 15, ...]
-    
-    console.log(Object.keys(borrowBookLast7Months));
-      console.log(Object.values(borrowBookLast7Months));
+    const labels = Object.keys(borrowBookLast7Months).map(month =>
+      dayjs(month, 'YYYY-MM').format('MMM YYYY') // convert "2025-03" → "Mar 2025"
+    );
+    const data = Object.values(borrowBookLast7Months);
+
     return {
       labels,
       datasets: [
@@ -61,24 +67,48 @@ export default function Dashboard() {
     };
   }, [borrowBookLast7Months]);
 
-  // Placeholder: Weekly activity (can be wired to backend later)
-  const weeklyActivity = useMemo(() => ({
-    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  // Placeholder: Weekly activity
+  // ...
+// Placeholder removed: Weekly activity now from backend
+const weeklyActivity = useMemo(() => {
+  const labels = Object.keys(weeklyBorrowedReturnActivity).map(date =>
+    dayjs(date).format("ddd") // e.g. "Thu"
+  );
+
+  const borrowedData = Object.keys(weeklyBorrowedReturnActivity).map(date => {
+    const borrowed = weeklyBorrowedReturnActivity[date].find(
+      item => item.action === "borrowed"
+    );
+    return borrowed ? borrowed.total : 0;
+  });
+
+  const returnedData = Object.keys(weeklyBorrowedReturnActivity).map(date => {
+    const returned = weeklyBorrowedReturnActivity[date].find(
+      item => item.action === "returned"
+    );
+    return returned ? returned.total : 0;
+  });
+
+  return {
+    labels,
     datasets: [
       {
-        label: 'Borrowed',
-        data: [45, 52, 39, 60, 70, 48, 55],
-        backgroundColor: '#3b82f6',
+        label: "Borrowed",
+        data: borrowedData,
+        backgroundColor: "#3b82f6",
       },
       {
-        label: 'Returned',
-        data: [38, 45, 32, 55, 62, 42, 50],
-        backgroundColor: '#10b981',
+        label: "Returned",
+        data: returnedData,
+        backgroundColor: "#10b981",
       },
     ],
-  }), []);
+  };
+}, [weeklyBorrowedReturnActivity]);
 
-  // Placeholder: Inventory split (can be wired to backend later)
+
+
+  // Placeholder: Inventory split
   const inventorySplit = useMemo(() => ({
     labels: ['Available', 'Borrowed', 'Reserved', 'Lost/Damaged'],
     datasets: [
@@ -102,13 +132,12 @@ export default function Dashboard() {
         beginAtZero: true,
         grid: { drawBorder: false },
         ticks: {
-          stepSize: 100,   // 👈 gap of 100
+          stepSize: 10, // adjust depending on values
         },
       },
       x: { grid: { display: false } },
     },
   };
-
 
   return (
     <>
@@ -118,45 +147,63 @@ export default function Dashboard() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Library Dashboard</h1>
-            <div className="text-sm text-gray-500">Updated just now</div>
+         
           </div>
 
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl border bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">Total Books</div>
-                <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-              </div>
-              <div className="mt-2 text-3xl font-bold text-blue-600">{bookCount}</div>
-            </div>
-
-            <div className="rounded-2xl border bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">Active Members</div>
-                <span className="w-3 h-3 rounded-full bg-green-500"></span>
-              </div>
-              <div className="mt-2 text-3xl font-bold text-green-600">{memberCount}</div>
-            </div>
-
-            <div className="rounded-2xl border bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">Books Borrowed Today</div>
-                <span className="w-3 h-3 rounded-full bg-yellow-500"></span>
-              </div>
-              <div className="mt-2 text-3xl font-bold text-yellow-600">{borrowBookToday}</div>
-            </div>
-
-            <div className="rounded-2xl border bg-white p-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">Overdue Books</div>
-                <span className="w-3 h-3 rounded-full bg-red-500"></span>
-              </div>
-              <div className="mt-2 text-3xl font-bold text-red-600">{overDueBooks}</div>
-            </div>
+  {/* KPI Cards */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[
+        { 
+          label: 'Total Books', 
+          value: bookCount, 
+          color: 'blue' 
+        },
+        { 
+          label: 'Active Members', 
+          value: memberCount, 
+          color: 'green',
+          extra: { label: 'This Week', value: membersCountThisWeek }
+        },
+        { 
+          label: 'Books Borrowed Today', 
+          value: borrowBookToday, 
+          color: 'yellow',
+          extra: { label: 'This Week', value: booksBorrowCountThisWeek }
+        },
+        { 
+          label: 'Overdue Books', 
+          value: overDueBooks, 
+          color: 'red' 
+        },
+      ].map((card, idx) => (
+        <div 
+          key={idx} 
+          className="rounded-2xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow duration-300"
+        >
+          {/* Card Header */}
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-500">{card.label}</div>
+            <span className={`w-3 h-3 rounded-full bg-${card.color}-500`}></span>
           </div>
 
-          {/* Charts Grid */}
+          {/* Main Value */}
+          <div className={`mt-2 text-3xl font-bold text-${card.color}-600`}>
+            {card.value}
+          </div>
+
+          {/* Extra info */}
+          {card.extra && (
+            <div className="mt-2 flex items-center space-x-2 text-xs">
+              <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                {card.extra.label}
+              </span>
+              <span className="font-semibold text-gray-800">{card.extra.value}</span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+    {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Line Chart */}
             <div className="rounded-2xl border bg-white p-4 shadow-sm h-80 lg:col-span-2">
@@ -176,11 +223,14 @@ export default function Dashboard() {
                 <span className="text-xs text-gray-500">Live</span>
               </div>
               <div className="h-[calc(100%-2rem)]">
-                <Doughnut data={inventorySplit} options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { position: 'bottom' } },
-                }} />
+                <Doughnut
+                  data={inventorySplit}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                  }}
+                />
               </div>
             </div>
 
@@ -191,7 +241,8 @@ export default function Dashboard() {
                 <span className="text-xs text-gray-500">This week</span>
               </div>
               <div className="h-[calc(100%-2rem)]">
-                <Bar data={weeklyActivity} options={commonOptions} />
+               <Bar data={weeklyActivity} options={commonOptions} />
+
               </div>
             </div>
           </div>

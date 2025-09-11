@@ -92,8 +92,9 @@ export default function ListBorrow() {
         </table>
       </div>
 
-      {/* Pagination (only show if this page has max results, e.g. 10) */}
-      {borrows.data.length === borrows.meta.per_page && (
+      {/* Pagination rules */}
+      {((borrows.meta.current_page === 1 && borrows.meta.total > borrows.meta.per_page) ||
+        borrows.meta.current_page > 1) && (
         <div className="flex justify-center space-x-2 mt-6">
           {borrows.meta.links.map((link, index) => (
             <button

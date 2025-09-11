@@ -88,7 +88,9 @@ public function store(StoreBookRequest $request){
  * Display the specified resource.
 */
 public function show(Book $book) {
-            //
+     return inertia('Books/BookDetail',[
+        'book' => $book,
+     ]);
 }
 
 /**
@@ -124,7 +126,7 @@ public function update(UpdateBookRequest $request, Book $book) {
             // 🚨 Important: keep old image if none uploaded
             unset($data['image_path']);
         }
-
+      
         // 📝 Update book
         $book->update($data);
 

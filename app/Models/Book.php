@@ -16,7 +16,8 @@ class Book extends Model
         'isbn',
         'published_year',
         'copies',
-        'image_path'
+        'image_path',
+        'borrowed',
     ];
 
 
@@ -43,6 +44,11 @@ class Book extends Model
 
 
             }
+        });
+
+        static::saving(function($book){
+            $book->available = max(0,($book->copies ?? 0) - ($book->borrowed ?? 0));
+            $book->status = $book->available > 0 ? 'available' : 'not available';
         });
     }
 

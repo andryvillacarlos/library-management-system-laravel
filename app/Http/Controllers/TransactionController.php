@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Http\Requests\StoreTransactionRequest;
-use App\Http\Requests\UpdateTransactionRequest;
 use App\Http\Resources\MemberResource;
+use App\Http\Resources\TrackHistoryResource;
 use App\Http\Resources\TransactionResource;
 use App\Models\Book;
 use App\Models\Fine;
@@ -14,6 +14,7 @@ use App\Models\Type;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
+use App\Models\TrackHistory;
 class TransactionController extends Controller
 {
    public function borrowList() {
@@ -86,165 +87,155 @@ class TransactionController extends Controller
 }
 
 
+public function borrowBook(StoreTransactionRequest $request)
+{
+    $validated = $request->validated();
+    $memberId = $validated['member_id'];
+    $bookId   = $validated['book_id'];
 
-
-public function borrowBook(StoreTransactionRequest $request) {
-            $validated = $request->validated();
-
-            $memberId = $validated['member_id'];
-            $bookId   = $validated['book_id'];
-
-            // Fetch member with policy
-            $member = Member::with('type.policy')->find($memberId);
-            if (!$member) {
-                throw ValidationException::withMessages([
-                    'member_id' => 'Member not found.',
-                ]);
-            }
-
-            $policy = $member->type->policy ?? null;
-            if (!$policy) {
-                throw ValidationException::withMessages([
-                    'member_id' => 'Policy not found for this member.',
-                ]);
-            }
-
-            // Check unpaid fines
-            $hasUnpaidFine = Fine::whereHas('transaction', function ($query) use ($memberId) {
-                    $query->where('member_id', $memberId);
-                })
-                ->where('is_paid', 0)
-                ->exists();
-
-            if ($hasUnpaidFine) {
-                throw ValidationException::withMessages([
-                    'member_id' => 'This member has unpaid fines and cannot borrow a book.',
-                ]);
-            }
-
-            // Check borrow limit
-            $currentBorrowed = Transaction::where('member_id', $memberId)
-                ->where('status', 'borrowed')
-                ->count();
-
-            if ($currentBorrowed >= $policy->borrow_limit) {
-                throw ValidationException::withMessages([
-                    'member_id' => 'Borrow limit reached.',
-                ]);
-            }
-
-            // Prevent duplicate borrow of same book
-            $alreadyBorrowed = Transaction::where('member_id', $memberId)
-                ->where('book_id', $bookId)
-                ->where('status', 'borrowed')
-                ->exists();
-
-            if ($alreadyBorrowed) {
-                throw ValidationException::withMessages([
-                    'book_id' => 'This member has already borrowed this book.',
-                ]);
-            }
-
-            // Check book availability
-            $book = Book::find($bookId);
-            if (!$book || $book->copies <= 0) {
-                throw ValidationException::withMessages([
-                    'book_id' => 'Book is not available.',
-                ]);
-            }
-
-            // Always use Asia/Manila timezone
-            $timezone   = 'Asia/Manila';
-            $borrowDate = now($timezone);
-            $dueDate    = $borrowDate->copy()->addDays($policy->due_days);
-
-            // Create transaction
-            Transaction::create([
-                'member_id'   => $memberId,
-                'book_id'     => $bookId,
-                'borrow_date' => $borrowDate->format('Y-m-d H:i:s'),
-                'return_date' => $dueDate->format('Y-m-d H:i:s'),
-                'status'      => 'borrowed',
-            ]);
-
-            // Update book copies
-            $book->decrement('copies');
-            $book->status = $book->copies <= 0 ? 'not available' : 'available';
-            $book->save();
-
-            return redirect()
-                ->route('transaction.borrow.list')
-                ->with('success', 'Book borrowed successfully.');
-}
-
-
-public function markAsReturned(Transaction $transaction){
-            
-            // Check if this books already return
-            if ($transaction->status !== 'borrowed') {
-                return back()->with('error', 'This book has already been returned.');
-            }
-            
-            // Update the books database
-            $transaction->update([
-                'status' => 'returned',
-                'return_date' => now()->toDateString(),
-            ]);
-        
-            // Find the book id that matches transaction book id data
-            $book = Book::find($transaction->book_id);
-            
-            // Update the copies and status
-        
-            if($book){
-                $book->copies += 1;
-                $book->status = $book->copies > 0 ? 'available' : 'not available';
-                $book->save();
-            }
-
-        return redirect()->route('transaction.borrow.list')->with('success','Return Successfully');
-}
-
-public function historyTransaction(Request $request) {
-    
-            // Get the search input
-            $search = $request->get('search');
-            // Get the status input
-            $status = $request->get('status', 'all');
-            
-            // Search in corresponding data in database
-            $history = Transaction::with(['book','member'])
-                ->when($search, function ($query, $search) {
-                    $query->whereHas('member', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                    })
-                    ->orWhereHas('book', function ($q) use ($search) {
-                        $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('author', 'like', "%{$search}%");
-                    });
-                })
-                ->when($status !== 'all', function ($query) use ($status) {
-                    $query->where('status', $status);
-                })
-                ->whereBetween('created_at', [Carbon::now()->subDays(7), Carbon::now()]) // 7 days filter
-                ->paginate(10)
-                ->appends($request->all())
-                ->onEachSide(1);
-
-            return inertia('History/HistoryList', [
-                'transactionHistory' => $history,
-                'filters' => [
-                    'search' => $search,
-                    'status' => $status,
-                ],
-                'statuses' => ['all', 'borrowed', 'returned', 'overdue'],
-            ]);
-}
-
-    public function deleteTransaction(){
-       Transaction::where('created_at','<',Carbon::now()->subDays(7))->delete();
-       
+    // Fetch member with type & policy
+    $member = Member::with('type.policy')->find($memberId);
+    if (!$member) {
+        throw ValidationException::withMessages([
+            'member_id' => 'Member not found.',
+        ]);
     }
+
+    $policy = $member->type->policy ?? null;
+    if (!$policy) {
+        throw ValidationException::withMessages([
+            'member_id' => 'Policy not found for this member.',
+        ]);
+    }
+
+    // Check unpaid fines
+    $hasUnpaidFine = Fine::whereHas('transaction', fn($q) => $q->where('member_id', $memberId))
+        ->where('is_paid', 0)
+        ->exists();
+    if ($hasUnpaidFine) {
+        throw ValidationException::withMessages([
+            'member_id' => 'This member has unpaid fines and cannot borrow a book.',
+        ]);
+    }
+
+    // Check borrow limit
+    $currentBorrowed = Transaction::where('member_id', $memberId)
+        ->where('status', 'borrowed')
+        ->count();
+    if ($currentBorrowed >= $policy->borrow_limit) {
+        throw ValidationException::withMessages([
+            'member_id' => 'Borrow limit reached.',
+        ]);
+    }
+
+    // Prevent duplicate borrow
+    $alreadyBorrowed = Transaction::where('member_id', $memberId)
+        ->where('book_id', $bookId)
+        ->where('status', 'borrowed')
+        ->exists();
+    if ($alreadyBorrowed) {
+        throw ValidationException::withMessages([
+            'book_id' => 'This member has already borrowed this book.',
+        ]);
+    }
+
+    // Fetch the book
+    $book = Book::find($bookId);
+    if (!$book || $book->available <= 0) {
+        throw ValidationException::withMessages([
+            'book_id' => 'Book is not available.',
+        ]);
+    }
+
+    // Borrow & due dates
+    $timezone   = 'Asia/Manila';
+    $borrowDate = now($timezone);
+    $dueDate    = $borrowDate->copy()->addDays($policy->due_days);
+
+    // Create transaction
+    Transaction::create([
+        'member_id'   => $memberId,
+        'book_id'     => $bookId,
+        'borrow_date' => $borrowDate->format('Y-m-d H:i:s'),
+        'return_date' => $dueDate->format('Y-m-d H:i:s'),
+        'status'      => 'borrowed',
+    ]);
+
+    // Update book borrowed count (available & status auto-handled by model)
+    $book->increment('borrowed');
+    $book->save();
+
+    return redirect()
+        ->route('transaction.borrow.list')
+        ->with('success', 'Book borrowed successfully.');
+}
+
+public function markAsReturned(Transaction $transaction)
+{
+    // Check if already returned
+    if ($transaction->status !== 'borrowed') {
+        return back()->with('error', 'This book has already been returned.');
+    }
+
+    // ✅ Just update the existing transaction
+    $transaction->update([
+        'status'      => 'returned',
+        'return_date' => now()->toDateString(),
+    ]);
+
+    // Update book counters
+    $book = Book::find($transaction->book_id);
+
+    if ($book) {
+        $book->borrowed = max(0, $book->borrowed - 1);
+        $book->available += 1;
+        $book->status = $book->available > 0 ? 'available' : 'not available';
+        $book->save();
+    }
+
+    return redirect()->route('transaction.borrow.list')
+                     ->with('success', 'Book returned successfully.');
+}
+
+
+
+public function historyTransaction(Request $request) 
+{
+    $search = $request->get('search');
+    $status = $request->get('status', 'all');
+
+    $history = TrackHistory::with(['transaction.book', 'transaction.member'])
+        ->when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('transaction.member', function ($q2) use ($search) {
+                    $q2->where('name', 'like', "%{$search}%")
+                       ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhereHas('transaction.book', function ($q2) use ($search) {
+                    $q2->where('title', 'like', "%{$search}%")
+                       ->orWhere('author', 'like', "%{$search}%");
+                });
+            });
+        })
+        ->when($status !== 'all', function ($query) use ($status) {
+            $query->where('action', $status); // Filter by action
+        })
+        ->whereBetween('action_date', [Carbon::now()->subDays(7), Carbon::now()])
+        ->orderByDesc('action_date')
+        ->paginate(10) // ✅ pagination stays intact
+        ->appends($request->all()) // ✅ keep filters in pagination links
+        ->onEachSide(1);
+
+    return inertia('History/HistoryList', [
+        // ✅ This keeps "data", "meta", and "links" for React
+        'transactionHistory' => TrackHistoryResource::collection($history),
+        'filters' => [
+            'search' => $search,
+            'status' => $status,
+        ],
+        'statuses' => ['all', 'borrowed', 'returned', 'overdue'],
+    ]);
+}
+
 
 }
